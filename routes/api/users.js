@@ -8,8 +8,8 @@ const keys = require("../../config/keys");
 const passport = require("passport");
 
 // Load Input Validation
-const validateRegisterInput = require('../../validation/register');
-const validateLoginInput = require('../../validation/login');
+const validateRegisterInput = require("../../validation/register");
+const validateLoginInput = require("../../validation/login");
 
 // @route   GET '/api/users/test'
 // @desc    Route Tester
@@ -20,7 +20,7 @@ router.get("/test", (req, res) => res.json({ msg: "users works" }));
 // @desc    Registers a user
 // @access  Public
 router.post("/register", (req, res) => {
-  const {errors, isValid} = validateRegisterInput(req.body);
+  const { errors, isValid } = validateRegisterInput(req.body);
 
   // check validation
   if (!isValid) {
@@ -67,14 +67,13 @@ router.post("/register", (req, res) => {
 router.post("/login", (req, res) => {
   const password = req.body.password;
   const email = req.body.email;
-  const {errors, isValid} = validateLoginInput(req.body);
+  const { errors, isValid } = validateLoginInput(req.body);
   // check validation
   if (!isValid) {
     return res.status(400).json(errors);
   }
 
   User.findOne({ email }).then(user => {
-    const {errors, isValid} = validateRegisterInput(req.body);
     // Check for a user from request data
     if (!user) {
       errors.email = "User Not Found";
@@ -107,7 +106,11 @@ router.post("/login", (req, res) => {
 // @route   Get '/api/users/current'
 // @desc    Return Current User
 // @access  Public
-router.get("/current", passport.authenticate("jwt", { session: false }), (req, res) => {
-  res.json(req.user);
-});
+router.get(
+  "/current",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    res.json(req.user);
+  }
+);
 module.exports = router;

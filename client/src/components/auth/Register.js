@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import classnames from "classnames";
+import classnames from "classnames"; // Custom classname injection
 import { connect } from "react-redux";
-import { registeruser } from "../../actions/authActions";
+import { withRouter } from "react-router-dom";
+import { registerUser } from "../../actions/authActions";
 
 class Register extends Component {
   constructor() {
@@ -31,7 +32,7 @@ class Register extends Component {
       password2: this.state.password2
     };
 
-    this.props.registeruser(newUser);
+    this.props.registerUser(newUser, this.props.history); // Allows redirection in this action -**used with withRouter**
   };
 
   componentWillReceiveProps(nextProps) {
@@ -90,7 +91,7 @@ class Register extends Component {
                   <input
                     type="password"
                     className={classnames("form-control form-control-lg", {
-                      "is-invalid": errors.name
+                      "is-invalid": errors.password
                     })}
                     placeholder="Password"
                     value={this.state.password}
@@ -105,7 +106,7 @@ class Register extends Component {
                   <input
                     type="password"
                     className={classnames("form-control form-control-lg", {
-                      "is-invalid": errors.name
+                      "is-invalid": errors.password2
                     })}
                     placeholder="Confirm Password"
                     value={this.state.password2}
@@ -139,5 +140,5 @@ Register.propTypes = {
 
 export default connect(
   mapStateToProps,
-  { registeruser }
-)(Register);
+  { registerUser }
+)(withRouter(Register));
