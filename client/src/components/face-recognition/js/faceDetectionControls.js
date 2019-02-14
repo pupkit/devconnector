@@ -1,7 +1,4 @@
-import { $ } from "jquery";
-// import nodejs bindings to native tensorflow,
-// not required, but will speed up things drastically (python required)
-import "@tensorflow/tfjs-node";
+import $ from "jquery";
 
 // implements nodejs wrappers for HTMLCanvasElement, HTMLImageElement, ImageData
 import * as canvas from "canvas";
@@ -31,11 +28,12 @@ let scoreThreshold = 0.5;
 let minFaceSize = 20;
 
 export function getFaceDetectorOptions() {
-  return selectedFaceDetector === SSD_MOBILENETV1
-    ? new faceapi.SsdMobilenetv1Options({ minConfidence })
-    : selectedFaceDetector === TINY_FACE_DETECTOR
-    ? new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold })
-    : new faceapi.MtcnnOptions({ minFaceSize });
+  return new faceapi.SsdMobilenetv1Options({ minConfidence });
+  // return selectedFaceDetector === SSD_MOBILENETV1
+  //   ? new faceapi.SsdMobilenetv1Options({ minConfidence })
+  //   : selectedFaceDetector === TINY_FACE_DETECTOR
+  //   ? new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold })
+  //   : new faceapi.MtcnnOptions({ minFaceSize });
 }
 
 export function onIncreaseMinConfidence() {
@@ -58,9 +56,9 @@ export function onInputSizeChanged(e) {
 export function changeInputSize(size) {
   inputSize = parseInt(size);
 
-  const inputSizeSelect = $("#inputSize");
-  inputSizeSelect.val(inputSize);
-  inputSizeSelect.material_select();
+  // const inputSizeSelect = $("#inputSize");
+  // inputSizeSelect.val(inputSize);
+  // inputSizeSelect.material_select();
 }
 
 export function onIncreaseScoreThreshold() {
@@ -86,6 +84,7 @@ export function onDecreaseMinFaceSize() {
 }
 
 export function getCurrentFaceDetectionNet() {
+  // return faceapi.nets.ssdMobilenetv1;
   if (selectedFaceDetector === SSD_MOBILENETV1) {
     return faceapi.nets.ssdMobilenetv1;
   }
@@ -102,24 +101,24 @@ export function isFaceDetectionModelLoaded() {
 }
 
 export async function changeFaceDetector(detector) {
-  [
-    "#ssd_mobilenetv1_controls",
-    "#tiny_face_detector_controls",
-    "#mtcnn_controls"
-  ].forEach(id => $(id).hide());
+  // [
+  //   "#ssd_mobilenetv1_controls",
+  //   "#tiny_face_detector_controls",
+  //   "#mtcnn_controls"
+  // ].forEach(id => $(id).hide());
 
   selectedFaceDetector = detector;
-  const faceDetectorSelect = $("#selectFaceDetector");
-  faceDetectorSelect.val(detector);
-  faceDetectorSelect.material_select();
+  // const faceDetectorSelect = $("#selectFaceDetector");
+  // faceDetectorSelect.val(detector);
+  // faceDetectorSelect.material_select();
 
-  $("#loader").show();
-  if (!isFaceDetectionModelLoaded()) {
-    await getCurrentFaceDetectionNet().load("/");
-  }
+  // $("#loader").show();
+  // if (!isFaceDetectionModelLoaded()) {
+  //   await getCurrentFaceDetectionNet().load("/");
+  // }
 
-  $(`#${detector}_controls`).show();
-  $("#loader").hide();
+  // $(`#${detector}_controls`).show();
+  // $("#loader").hide();
 }
 
 export async function onSelectedFaceDetectorChanged(e) {

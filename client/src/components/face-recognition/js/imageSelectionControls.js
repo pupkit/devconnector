@@ -1,8 +1,4 @@
-import { $ } from "jquery";
-// import nodejs bindings to native tensorflow,
-// not required, but will speed up things drastically (python required)
-import "@tensorflow/tfjs-node";
-
+import $ from "jquery";
 // implements nodejs wrappers for HTMLCanvasElement, HTMLImageElement, ImageData
 import * as canvas from "canvas";
 
