@@ -1,15 +1,16 @@
 import $ from "jquery";
 
 // implements nodejs wrappers for HTMLCanvasElement, HTMLImageElement, ImageData
-import * as canvas from "canvas";
+// import * as canvas from "canvas";
 
 import * as faceapi from "face-api.js";
+
+// import path from "path";
 
 // patch nodejs environment, we need to provide an implementation of
 // HTMLCanvasElement and HTMLImageElement, additionally an implementation
 // of ImageData is required, in case you want to use the MTCNN
-const { Canvas, Image, ImageData } = canvas;
-faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+// const { Canvas, Image, ImageData } = canvas;
 
 export const SSD_MOBILENETV1 = "ssd_mobilenetv1";
 export const TINY_FACE_DETECTOR = "tiny_face_detector";
@@ -21,7 +22,7 @@ let selectedFaceDetector = SSD_MOBILENETV1;
 let minConfidence = 0.5;
 
 // tiny_face_detector options
-let inputSize = 512;
+let inputSize = 128;
 let scoreThreshold = 0.5;
 
 //mtcnn options
@@ -84,16 +85,16 @@ export function onDecreaseMinFaceSize() {
 }
 
 export function getCurrentFaceDetectionNet() {
-  // return faceapi.nets.ssdMobilenetv1;
-  if (selectedFaceDetector === SSD_MOBILENETV1) {
-    return faceapi.nets.ssdMobilenetv1;
-  }
-  if (selectedFaceDetector === TINY_FACE_DETECTOR) {
-    return faceapi.nets.tinyFaceDetector;
-  }
-  if (selectedFaceDetector === MTCNN) {
-    return faceapi.nets.mtcnn;
-  }
+  return faceapi.nets.ssdMobilenetv1;
+  // if (selectedFaceDetector === SSD_MOBILENETV1) {
+  //   return faceapi.nets.ssdMobilenetv1;
+  // }
+  // if (selectedFaceDetector === TINY_FACE_DETECTOR) {
+  //   return faceapi.nets.tinyFaceDetector;
+  // }
+  // if (selectedFaceDetector === MTCNN) {
+  //   return faceapi.nets.mtcnn;
+  // }
 }
 
 export function isFaceDetectionModelLoaded() {
@@ -113,9 +114,14 @@ export async function changeFaceDetector(detector) {
   // faceDetectorSelect.material_select();
 
   // $("#loader").show();
-  // if (!isFaceDetectionModelLoaded()) {
-  //   await getCurrentFaceDetectionNet().load("/");
-  // }
+  if (!isFaceDetectionModelLoaded()) {
+    // await faceapi.nets.ssdMobilenetv1.loadFromDisk('./models');
+    // await faceapi.loadSsdMobilenetv1Model('/weights');
+    await getCurrentFaceDetectionNet().load("/weights");
+    // await faceapi.nets.ssdMobilenetv1.load("/");
+    // await faceapi.nets.ssdMobilenetv1.loadFromDisk(path.join(__dirname, '..', '..', '..', 'weights'))
+
+  }
 
   // $(`#${detector}_controls`).show();
   // $("#loader").hide();

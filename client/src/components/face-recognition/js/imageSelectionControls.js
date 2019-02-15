@@ -14,7 +14,6 @@ import {
 // HTMLCanvasElement and HTMLImageElement, additionally an implementation
 // of ImageData is required, in case you want to use the MTCNN
 const { Canvas, Image, ImageData } = canvas;
-faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 export async function onSelectedImageChanged(uri) {
   const img = await faceapi.fetchImage(uri);

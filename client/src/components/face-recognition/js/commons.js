@@ -9,7 +9,6 @@ import * as faceapi from "face-api.js";
 // HTMLCanvasElement and HTMLImageElement, additionally an implementation
 // of ImageData is required, in case you want to use the MTCNN
 const { Canvas, Image, ImageData } = canvas;
-faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 export async function requestExternalImage(imageUrl) {
   const res = await fetch("fetch_external_image", {

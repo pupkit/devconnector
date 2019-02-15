@@ -1,35 +1,53 @@
 import React, { Component } from "react";
 import * as faceapi from "face-api.js";
 import $ from "jquery";
+// import {
+//   requestExternalImage,
+//   renderNavBar,
+//   renderSelectList,
+//   renderOption
+// } from "./js/commons";
 import {
-  requestExternalImage,
-  renderNavBar,
-  renderSelectList,
-  renderOption
-} from "./js/commons";
-import {
-  resizeCanvasAndResults,
+  // resizeCanvasAndResults,
   drawDetections,
-  drawLandmarks,
-  drawExpressions
+  // drawLandmarks,
+  // drawExpressions
 } from "./js/drawing";
 import {
   changeFaceDetector,
-  changeInputSize,
+  // changeInputSize,
   getFaceDetectorOptions,
-  initFaceDetectionControls,
+  // initFaceDetectionControls,
   isFaceDetectionModelLoaded,
-  onDecreaseMinConfidence,
-  onIncreaseMinConfidence,
-  onDecreaseScoreThreshold,
-  onIncreaseScoreThreshold,
-  onDecreaseMinFaceSize,
-  onIncreaseMinFaceSize,
-  TINY_FACE_DETECTOR,
-  SSD_MOBILENETV1
+  // onDecreaseMinConfidence,
+  // onIncreaseMinConfidence,
+  // onDecreaseScoreThreshold,
+  // onIncreaseScoreThreshold,
+  // onDecreaseMinFaceSize,
+  // onIncreaseMinFaceSize,
+  // TINY_FACE_DETECTOR,
+  // SSD_MOBILENETV1
 } from "./js/faceDetectionControls";
 
 import styles from "./styles.css";
+
+async function onPlay() {
+  
+  const videoEl = $("#inputVideo").get(0);
+  
+  if (videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
+    return setTimeout(() => onPlay());  
+  
+  const options = getFaceDetectorOptions();
+
+  const result = await faceapi.detectSingleFace(videoEl, options);
+  
+  // updateTimeStats(Date.now() - ts)
+  if (result) {
+    drawDetections(videoEl, $("#overlay").get(0), [result]);
+  }
+  setTimeout(() => onPlay());
+}
 
 export default class FaceRecognition extends Component {
   constructor() {
@@ -41,8 +59,8 @@ export default class FaceRecognition extends Component {
 
   async run() {
     // load face detection model
-    await changeFaceDetector(SSD_MOBILENETV1);
-    changeInputSize(128);
+    // await changeFaceDetector(SSD_MOBILENETV1);
+    // changeInputSize(128);
 
     // try to access users webcam and stream the images
     // to the video element
@@ -51,30 +69,10 @@ export default class FaceRecognition extends Component {
     videoEl.srcObject = stream;
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     // initFaceDetectionControls();
+    changeFaceDetector();
     this.run();
-  }
-
-  async onPlay() {
-    const videoEl = $("#inputVideo").get(0);
-
-    if (videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
-      return setTimeout(() => this.onPlay);
-
-    const options = getFaceDetectorOptions();
-
-    const ts = Date.now();
-
-    const result = await faceapi.detectSingleFace(videoEl, options);
-
-    // updateTimeStats(Date.now() - ts)
-
-    if (result) {
-      drawDetections(videoEl, $("#overlay").get(0), [result]);
-    }
-
-    setTimeout(() => this.onPlay);
   }
 
   render() {
@@ -82,7 +80,7 @@ export default class FaceRecognition extends Component {
       <div className="center-content">
         <div style={{ position: "relative" }} className="margin">
           <video
-            // onPlay={this.onPlay.bind(this)}
+            onPlay={onPlay}
             id="inputVideo"
             autoPlay
             muted
