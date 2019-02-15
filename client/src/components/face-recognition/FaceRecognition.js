@@ -17,7 +17,7 @@ import {
   changeFaceDetector,
   // changeInputSize,
   getFaceDetectorOptions,
-  // initFaceDetectionControls,
+  initFaceDetectionControls,
   isFaceDetectionModelLoaded,
   // onDecreaseMinConfidence,
   // onIncreaseMinConfidence,
@@ -70,8 +70,8 @@ export default class FaceRecognition extends Component {
   }
 
   async componentDidMount() {
-    // initFaceDetectionControls();
-    changeFaceDetector();
+    initFaceDetectionControls();
+    // changeFaceDetector();
     this.run();
   }
 

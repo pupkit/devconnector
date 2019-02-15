@@ -16,7 +16,7 @@ export const SSD_MOBILENETV1 = "ssd_mobilenetv1";
 export const TINY_FACE_DETECTOR = "tiny_face_detector";
 export const MTCNN = "mtcnn";
 
-let selectedFaceDetector = SSD_MOBILENETV1;
+let selectedFaceDetector = MTCNN;
 
 // ssd_mobilenetv1 options
 let minConfidence = 0.5;
@@ -26,15 +26,19 @@ let inputSize = 128;
 let scoreThreshold = 0.5;
 
 //mtcnn options
-let minFaceSize = 20;
+let minFaceSize = 200;
+let maxNumScales = 10;
+let scaleFactor = 0.709;
+let scoreThresholds = [0.6, 0.7, 0.7];
 
 export function getFaceDetectorOptions() {
-  return new faceapi.SsdMobilenetv1Options({ minConfidence });
-  // return selectedFaceDetector === SSD_MOBILENETV1
-  //   ? new faceapi.SsdMobilenetv1Options({ minConfidence })
-  //   : selectedFaceDetector === TINY_FACE_DETECTOR
-  //   ? new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold })
-  //   : new faceapi.MtcnnOptions({ minFaceSize });
+  console.log(selectedFaceDetector);
+  // return new faceapi.SsdMobilenetv1Options({ minConfidence });
+  return selectedFaceDetector === SSD_MOBILENETV1
+    ? new faceapi.SsdMobilenetv1Options({ minConfidence })
+    : selectedFaceDetector === TINY_FACE_DETECTOR
+    ? new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold })
+    : new faceapi.MtcnnOptions({ minFaceSize, maxNumScales, scaleFactor, scoreThresholds });
 }
 
 export function onIncreaseMinConfidence() {
@@ -85,16 +89,16 @@ export function onDecreaseMinFaceSize() {
 }
 
 export function getCurrentFaceDetectionNet() {
-  return faceapi.nets.ssdMobilenetv1;
-  // if (selectedFaceDetector === SSD_MOBILENETV1) {
-  //   return faceapi.nets.ssdMobilenetv1;
-  // }
-  // if (selectedFaceDetector === TINY_FACE_DETECTOR) {
-  //   return faceapi.nets.tinyFaceDetector;
-  // }
-  // if (selectedFaceDetector === MTCNN) {
-  //   return faceapi.nets.mtcnn;
-  // }
+  // return faceapi.nets.ssdMobilenetv1;
+  if (selectedFaceDetector === SSD_MOBILENETV1) {
+    return faceapi.nets.ssdMobilenetv1;
+  }
+  if (selectedFaceDetector === TINY_FACE_DETECTOR) {
+    return faceapi.nets.tinyFaceDetector;
+  }
+  if (selectedFaceDetector === MTCNN) {
+    return faceapi.nets.mtcnn;
+  }
 }
 
 export function isFaceDetectionModelLoaded() {
@@ -120,7 +124,6 @@ export async function changeFaceDetector(detector) {
     await getCurrentFaceDetectionNet().load("/weights");
     // await faceapi.nets.ssdMobilenetv1.load("/");
     // await faceapi.nets.ssdMobilenetv1.loadFromDisk(path.join(__dirname, '..', '..', '..', 'weights'))
-
   }
 
   // $(`#${detector}_controls`).show();
@@ -134,14 +137,16 @@ export async function onSelectedFaceDetectorChanged(e) {
   // updateResults()
 }
 
-export function initFaceDetectionControls() {
-  const faceDetectorSelect = $("#selectFaceDetector");
-  faceDetectorSelect.val(selectedFaceDetector);
-  faceDetectorSelect.on("change", onSelectedFaceDetectorChanged);
-  faceDetectorSelect.material_select();
+export async function initFaceDetectionControls() {
+  // const faceDetectorSelect = $("#selectFaceDetector");
+  // faceDetectorSelect.val(selectedFaceDetector);
+  // faceDetectorSelect.on("change", onSelectedFaceDetectorChanged);
+  // faceDetectorSelect.material_select();
 
-  const inputSizeSelect = $("#inputSize");
-  inputSizeSelect.val(inputSize);
-  inputSizeSelect.on("change", onInputSizeChanged);
-  inputSizeSelect.material_select();
+  // const inputSizeSelect = $("#inputSize");
+  // inputSizeSelect.val(inputSize);
+  // inputSizeSelect.on("change", onInputSizeChanged);
+  // inputSizeSelect.material_select();
+
+  await changeFaceDetector(selectedFaceDetector);
 }
