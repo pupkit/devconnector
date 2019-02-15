@@ -10,7 +10,7 @@ import $ from "jquery";
 import {
   // resizeCanvasAndResults,
   drawDetections,
-  // drawLandmarks,
+  drawLandmarks
   // drawExpressions
 } from "./js/drawing";
 import {
@@ -18,7 +18,7 @@ import {
   // changeInputSize,
   getFaceDetectorOptions,
   initFaceDetectionControls,
-  isFaceDetectionModelLoaded,
+  isFaceDetectionModelLoaded
   // onDecreaseMinConfidence,
   // onIncreaseMinConfidence,
   // onDecreaseScoreThreshold,
@@ -30,21 +30,29 @@ import {
 } from "./js/faceDetectionControls";
 
 import styles from "./styles.css";
+import isEmpty from "../../utils/is-empty";
 
 async function onPlay() {
-  
   const videoEl = $("#inputVideo").get(0);
-  
+  const overlay = $("#overlay").get(0);
+
   if (videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
-    return setTimeout(() => onPlay());  
-  
+    return setTimeout(() => onPlay());
+
   const options = getFaceDetectorOptions();
 
-  const result = await faceapi.detectSingleFace(videoEl, options);
-  
+  // const result = await faceapi.detectSingleFace(videoEl, options);
+  const result = await faceapi.mtcnn(videoEl, options);
+
+  // Compute Face Descriptors
+  // const fullFaceDescriptions = await faceapi.detectAllFaces(videoEl, options).withFaceLandmarks().withFaceDescriptors()
+
+
   // updateTimeStats(Date.now() - ts)
-  if (result) {
-    drawDetections(videoEl, $("#overlay").get(0), [result]);
+  if (!isEmpty(result)) {
+    console.log(result);
+    drawDetections(videoEl, overlay, result);
+    drawLandmarks(videoEl, overlay, result, true)
   }
   setTimeout(() => onPlay());
 }
@@ -64,6 +72,7 @@ export default class FaceRecognition extends Component {
 
     // try to access users webcam and stream the images
     // to the video element
+    await faceapi.loadFaceRecognitionModel("/weights");
     const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
     const videoEl = $("#inputVideo").get(0);
     videoEl.srcObject = stream;
@@ -79,12 +88,7 @@ export default class FaceRecognition extends Component {
     return (
       <div className="center-content">
         <div style={{ position: "relative" }} className="margin">
-          <video
-            onPlay={onPlay}
-            id="inputVideo"
-            autoPlay
-            muted
-          />
+          <video onPlay={onPlay} id="inputVideo" autoPlay muted />
           <canvas id="overlay" />
         </div>
 

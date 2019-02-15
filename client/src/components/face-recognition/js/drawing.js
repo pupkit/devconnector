@@ -34,7 +34,7 @@ export function drawLandmarks(dimensions, canvas, results, withBoxes = true) {
 
   const faceLandmarks = resizedResults.map(det => det.landmarks)
   const drawLandmarksOptions = {
-    lineWidth: 2,
+    lineWidth: 4,
     drawLines: true,
     color: 'green'
   }

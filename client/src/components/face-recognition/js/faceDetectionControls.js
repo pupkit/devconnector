@@ -32,7 +32,6 @@ let scaleFactor = 0.709;
 let scoreThresholds = [0.6, 0.7, 0.7];
 
 export function getFaceDetectorOptions() {
-  console.log(selectedFaceDetector);
   // return new faceapi.SsdMobilenetv1Options({ minConfidence });
   return selectedFaceDetector === SSD_MOBILENETV1
     ? new faceapi.SsdMobilenetv1Options({ minConfidence })
