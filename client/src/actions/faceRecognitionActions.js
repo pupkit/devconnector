@@ -1,4 +1,4 @@
-import { GET_ERRORS, SET_CURRENT_USER, SET_WHOISIT } from "./types";
+import { SET_WHOISIT } from "./types";
 
 // Log out the user
 export const setWhoIsIt = whoisit => dispatch => {
