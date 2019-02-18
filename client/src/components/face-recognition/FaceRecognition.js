@@ -1,6 +1,11 @@
 import React, { Component } from "react";
 import * as faceapi from "face-api.js";
+import path from "path";
+import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
+import PropTypes from "prop-types";
 import $ from "jquery";
+import { setWhoIsIt } from "../../actions/faceRecognitionActions";
 // import {
 //   requestExternalImage,
 //   renderNavBar,
@@ -18,7 +23,8 @@ import {
   // changeInputSize,
   getFaceDetectorOptions,
   initFaceDetectionControls,
-  isFaceDetectionModelLoaded
+  isFaceDetectionModelLoaded,
+  isFaceRecognitionModelLoaded,
   // onDecreaseMinConfidence,
   // onIncreaseMinConfidence,
   // onDecreaseScoreThreshold,
@@ -32,37 +38,115 @@ import {
 import styles from "./styles.css";
 import isEmpty from "../../utils/is-empty";
 
-async function onPlay() {
-  const videoEl = $("#inputVideo").get(0);
-  const overlay = $("#overlay").get(0);
+let videoEl, overlay, faceMatcher, bestMatch, labeledFaceDescriptors;
+const maxDescriptorDistance = 0.5;
 
-  if (videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
-    return setTimeout(() => onPlay());
+async function buildLabeledDescriptors() {
+  // const labels = [
+  //   "sheldon",
+  //   "raj",
+  //   "leonard",
+  //   "howard",
+  //   "amy",
+  //   "stuart",
+  //   "bernadette",
+  //   "penny"
+  // ];
+  const labels = ["raj", "howard"];
 
-  const options = getFaceDetectorOptions();
+  labeledFaceDescriptors = await Promise.all(
+    labels.map(async label => {
+      console.log(label + ": start");
+      // fetch image data from urls and convert blob to HTMLImage element
+      const imgUrl = `${label}.png`;
+      const img = await faceapi.fetchImage(`/faces/${imgUrl}`);
+      // detect the face with the highest score in the image and compute it's landmarks and face descriptor
+      const fullFaceDescription = await faceapi
+        .detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.1 }))
+        .withFaceLandmarks()
+        .withFaceDescriptor();
 
-  // const result = await faceapi.detectSingleFace(videoEl, options);
-  const result = await faceapi.mtcnn(videoEl, options);
+      console.log(fullFaceDescription);
 
-  // Compute Face Descriptors
-  // const fullFaceDescriptions = await faceapi.detectAllFaces(videoEl, options).withFaceLandmarks().withFaceDescriptors()
+      if (!fullFaceDescription) {
+        throw new Error(`no faces detected for ${label}`);
+      }
 
-
-  // updateTimeStats(Date.now() - ts)
-  if (!isEmpty(result)) {
-    console.log(result);
-    drawDetections(videoEl, overlay, result);
-    drawLandmarks(videoEl, overlay, result, true)
-  }
-  setTimeout(() => onPlay());
+      const faceDescriptors = [fullFaceDescription.descriptor];
+      console.log(label + ": end");
+      return new faceapi.LabeledFaceDescriptors(label, faceDescriptors);
+    })
+  );
 }
 
-export default class FaceRecognition extends Component {
+class FaceRecognition extends Component {
   constructor() {
     super();
     this.state = {
-      forwardTimes: []
+      whoIsIt: "Nobody"
     };
+    this.onPlay = this.onPlay.bind(this);
+  }
+
+  async onPlay() {
+    if (videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
+      return setTimeout(() => this.onPlay());
+    // const options = getFaceDetectorOptions();
+
+    // const result = await faceapi.detectSingleFace(videoEl, options);
+    const result = await faceapi
+      .detectSingleFace(videoEl, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.8 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    // create FaceMatcher with automatically assigned labels
+    // from the detection results for the reference image
+
+    // const result = await faceapi.mtcnn(videoEl, options);
+
+    // Compute Face Descriptors
+    // const alignedFaceBoxes = result.map(({ landmarks }) => landmarks.align());
+
+    // const alignedFaceTensors = await faceapi.extractFaceTensors(
+    //   videoEl,
+    //   alignedFaceBoxes
+    // );
+
+    // const descriptors = await Promise.all(
+    //   alignedFaceTensors.map(faceTensor =>
+    //     faceapi.computeFaceDescriptor(faceTensor)
+    //   )
+    // );
+
+    // // free memory
+    // alignedFaceTensors.forEach(t => t.dispose());
+
+    if (!isEmpty(result)) {
+      console.log(result);
+      // drawDetections(videoEl, overlay, [result]);
+      drawLandmarks(videoEl, overlay, [result], true);
+
+      console.log("labeledFaceDescriptors: " + labeledFaceDescriptors);
+      faceMatcher = new faceapi.FaceMatcher(
+        labeledFaceDescriptors,
+        maxDescriptorDistance
+      );
+      // faceMatcher = new faceapi.FaceMatcher(result);
+
+      if (result) {
+        bestMatch = faceMatcher.findBestMatch(result.descriptor);
+        this.props.setWhoIsIt(bestMatch.toString());
+      }
+      faceMatcher = null;
+      bestMatch = null;
+    }
+    setTimeout(() => this.onPlay());
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.whoIsIt) {
+      this.setState({ whoIsIt: nextProps.whoIsIt });
+    }
   }
 
   async run() {
@@ -72,139 +156,55 @@ export default class FaceRecognition extends Component {
 
     // try to access users webcam and stream the images
     // to the video element
-    await faceapi.loadFaceRecognitionModel("/weights");
     const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
     const videoEl = $("#inputVideo").get(0);
     videoEl.srcObject = stream;
   }
+  
+  async componentWillMount() {
+    await faceapi.loadSsdMobilenetv1Model("/weights");
+    await faceapi.loadFaceRecognitionModel("/weights");
+    await faceapi.loadFaceLandmarkModel("/weights");
+    await buildLabeledDescriptors();
+  }
 
   async componentDidMount() {
-    initFaceDetectionControls();
-    // changeFaceDetector();
-    this.run();
+    overlay = $("#overlay").get(0);
+    videoEl = $("#inputVideo").get(0);
+
+    await this.run();
   }
 
   render() {
     return (
       <div className="center-content">
         <div style={{ position: "relative" }} className="margin">
-          <video onPlay={onPlay} id="inputVideo" autoPlay muted />
+          <video onPlay={this.onPlay} id="inputVideo" autoPlay muted />
           <canvas id="overlay" />
         </div>
-
         <div>
-          <div className="row side-by-side">
-            <div
-              id="face_detector_selection_control"
-              className="row input-field"
-              style={{ marginRight: 20 }}
-            >
-              {/* <select id="selectFaceDetector">
-                <option value="ssd_mobilenetv1">SSD Mobilenet V1</option>
-                <option value="tiny_face_detector">Tiny Face Detector</option>
-                <option value="mtcnn">MTCNN</option>
-              </select>
-              <label>Select Face Detector</label> */}
-            </div>
-          </div>
-
-          {/* <span id="ssd_mobilenetv1_controls">
-            <div className="row side-by-side">
-              <div className="row">
-                <label htmlFor="minConfidence">Min Confidence:</label>
-                <input
-                  disabled
-                  defaultValue="0.5"
-                  id="minConfidence"
-                  type="text"
-                  className="bold"
-                />
-              </div>
-              <button
-                className="waves-effect waves-light btn"
-                onClick={onDecreaseMinConfidence}
-              >
-                <i className="material-icons left">-</i>
-              </button>
-              <button
-                className="waves-effect waves-light btn"
-                onClick={onIncreaseMinConfidence}
-              >
-                <i className="material-icons left">+</i>
-              </button>
-            </div>
-          </span>
-
-          <span id="tiny_face_detector_controls">
-            <div className="row side-by-side">
-              <div className="row input-field" style={{ marginRight: 20 }}>
-                <select id="inputSize">
-                  <option value disabled>
-                    Input Size:
-                  </option>
-                  <option value={128}>128 x 128</option>
-                  <option value={160}>160 x 160</option>
-                  <option value={224}>224 x 224</option>
-                  <option value={320}>320 x 320</option>
-                  <option value={416}>416 x 416</option>
-                  <option value={512}>512 x 512</option>
-                  <option value={608}>608 x 608</option>
-                </select>
-                <label>Input Size</label>
-              </div>
-              <div className="row">
-                <label htmlFor="scoreThreshold">Score Threshold:</label>
-                <input
-                  disabled
-                  defaultValue="0.5"
-                  id="scoreThreshold"
-                  type="text"
-                  className="bold"
-                />
-              </div>
-              <button
-                className="waves-effect waves-light btn"
-                onClick={onDecreaseScoreThreshold}
-              >
-                <i className="material-icons left">-</i>
-              </button>
-              <button
-                className="waves-effect waves-light btn"
-                onClick={onIncreaseScoreThreshold}
-              >
-                <i className="material-icons left">+</i>
-              </button>
-            </div>
-          </span>
-
-          <span id="mtcnn_controls">
-            <div className="row side-by-side">
-              <div className="row">
-                <label htmlFor="minFaceSize">Minimum Face Size:</label>
-                <input
-                  disabled
-                  defaultValue={20}
-                  id="minFaceSize"
-                  type="text"
-                  className="bold"
-                />
-              </div>
-              <button
-                className="waves-effect waves-light btn"
-                onClick={onDecreaseMinFaceSize}
-              >
-                <i className="material-icons left">-</i>
-              </button>
-              <button
-                className="waves-effect waves-light btn"
-                onClick={onIncreaseMinFaceSize}
-              >
-                <i className="material-icons left">+</i>
-              </button>
-            </div>
-          </span> */}
+          <label>{this.state.whoIsIt}</label>
         </div>
       </div>
     );
   }
 }
+
+FaceRecognition.propTypes = {
+  whoIsIt: PropTypes.string.isRequired
+};
+
+// const mapStateToProps = state => ({
+//   whoIsIt: state.whoIsIt
+// });
+
+const mapStateToProps = state => {
+  return {
+    whoIsIt: state.faceRecognition.whoIsIt
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  { setWhoIsIt }
+)(FaceRecognition);

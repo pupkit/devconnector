@@ -101,7 +101,11 @@ export function getCurrentFaceDetectionNet() {
 }
 
 export function isFaceDetectionModelLoaded() {
-  return !!getCurrentFaceDetectionNet().params;
+  return !!faceapi.nets.ssdMobilenetv1.params;
+}
+
+export function isFaceRecognitionModelLoaded() {
+  return !!faceapi.nets.faceRecognitionNet.params;
 }
 
 export async function changeFaceDetector(detector) {

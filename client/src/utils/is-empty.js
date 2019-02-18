@@ -1,6 +1,7 @@
 const isEmpty = value => {
   return (
     value === undefined ||
+    value === [undefined] ||
     value === {} ||
     value === "" ||
     value === null ||

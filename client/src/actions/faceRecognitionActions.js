@@ -1,0 +1,7 @@
+import { GET_ERRORS, SET_CURRENT_USER, SET_WHOISIT } from "./types";
+
+// Log out the user
+export const setWhoIsIt = whoisit => dispatch => {
+  // Set current user as {} which will set isAuthenticated to false
+  dispatch({ type: SET_WHOISIT, payload: whoisit });
+};

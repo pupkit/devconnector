@@ -9,44 +9,63 @@ import * as faceapi from "face-api.js";
 // const { Canvas, Image, ImageData } = canvas;
 
 export function resizeCanvasAndResults(dimensions, canvas, results) {
-  const { width, height } = dimensions instanceof HTMLVideoElement
-    ? faceapi.getMediaDimensions(dimensions)
-    : dimensions
-  canvas.width = width
-  canvas.height = height
+  const { width, height } =
+    dimensions instanceof HTMLVideoElement
+      ? faceapi.getMediaDimensions(dimensions)
+      : dimensions;
+  canvas.width = width;
+  canvas.height = height;
 
   // resize detections (and landmarks) in case displayed image is smaller than
   // original size
-  return faceapi.resizeResults(results, { width, height })
+  return faceapi.resizeResults(results, { width, height });
 }
 
 export function drawDetections(dimensions, canvas, detections) {
-  const resizedDetections = resizeCanvasAndResults(dimensions, canvas, detections)
-  faceapi.drawDetection(canvas, resizedDetections)
+  const resizedDetections = resizeCanvasAndResults(
+    dimensions,
+    canvas,
+    detections
+  );
+  faceapi.drawDetection(canvas, resizedDetections.map(det => det.detection), { withScore: false });
 }
 
 export function drawLandmarks(dimensions, canvas, results, withBoxes = true) {
-  const resizedResults = resizeCanvasAndResults(dimensions, canvas, results)
+  const resizedResults = resizeCanvasAndResults(dimensions, canvas, results);
 
   if (withBoxes) {
-    faceapi.drawDetection(canvas, resizedResults.map(det => det.detection))
+    faceapi.drawDetection(canvas, resizedResults.map(det => det.detection));
   }
 
-  const faceLandmarks = resizedResults.map(det => det.landmarks)
+  const faceLandmarks = resizedResults.map(det => det.landmarks);
   const drawLandmarksOptions = {
     lineWidth: 4,
     drawLines: true,
-    color: 'green'
-  }
-  faceapi.drawLandmarks(canvas, faceLandmarks, drawLandmarksOptions)
+    color: "red"
+  };
+  faceapi.drawLandmarks(canvas, faceLandmarks, drawLandmarksOptions);
 }
 
-export function drawExpressions(dimensions, canvas, results, thresh, withBoxes = true) {
-  const resizedResults = resizeCanvasAndResults(dimensions, canvas, results)
+export function drawExpressions(
+  dimensions,
+  canvas,
+  results,
+  thresh,
+  withBoxes = true
+) {
+  const resizedResults = resizeCanvasAndResults(dimensions, canvas, results);
 
   if (withBoxes) {
-    faceapi.drawDetection(canvas, resizedResults.map(det => det.detection), { withScore: false })
+    faceapi.drawDetection(canvas, resizedResults.map(det => det.detection), {
+      withScore: false
+    });
   }
 
-  faceapi.drawFaceExpressions(canvas, resizedResults.map(({ detection, expressions }) => ({ position: detection.box, expressions })))
+  faceapi.drawFaceExpressions(
+    canvas,
+    resizedResults.map(({ detection, expressions }) => ({
+      position: detection.box,
+      expressions
+    }))
+  );
 }
