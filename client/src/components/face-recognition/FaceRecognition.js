@@ -6,7 +6,7 @@ import { withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import $ from "jquery";
 import ReactJson from 'react-json-view';
-import { setWhoIsIt } from "../../actions/faceRecognitionActions";
+import { setWhoIsIt, setModelStatus } from "../../actions/faceRecognitionActions";
 // import {
 //   requestExternalImage,
 //   renderNavBar,
@@ -85,7 +85,8 @@ class FaceRecognition extends Component {
     super();
     this.state = {
       whoIsIt: "Nobody",
-      faceInfo: {}
+      faceInfo: {},
+      modelStatus: "Loading..."
     };
     this.onPlay = this.onPlay.bind(this);
   }
@@ -147,7 +148,7 @@ class FaceRecognition extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.whoIsIt) {
-      this.setState({ whoIsIt: nextProps.whoIsIt, faceInfo: nextProps.faceInfo });
+      this.setState({ whoIsIt: nextProps.whoIsIt, faceInfo: nextProps.faceInfo, modelStatus: nextProps.modelStatus });
     }
   }
 
@@ -168,6 +169,7 @@ class FaceRecognition extends Component {
     await faceapi.loadFaceRecognitionModel("/weights");
     await faceapi.loadFaceLandmarkModel("/weights");
     await buildLabeledDescriptors();
+    this.props.setModelStatus("Ready");
   }
 
   async componentDidMount() {
@@ -183,6 +185,7 @@ class FaceRecognition extends Component {
         <div style={{ position: "relative" }} className="margin">
           <video onPlay={this.onPlay} id="inputVideo" autoPlay muted />
           <canvas id="overlay" />
+          <label>{this.state.modelStatus}</label>
         </div>
         <div>
           <label>{JSON.stringify(this.state.whoIsIt)}</label>
@@ -195,7 +198,8 @@ class FaceRecognition extends Component {
 
 FaceRecognition.propTypes = {
   whoIsIt: PropTypes.string.isRequired,
-  faceInfo: PropTypes.object.isRequired
+  faceInfo: PropTypes.object.isRequired,
+  modelStatus: PropTypes.string.isRequired
 };
 
 // const mapStateToProps = state => ({
@@ -205,11 +209,12 @@ FaceRecognition.propTypes = {
 const mapStateToProps = state => {
   return {
     whoIsIt: state.faceRecognition.whoIsIt,
-    faceInfo: state.faceRecognition.faceInfo
+    faceInfo: state.faceRecognition.faceInfo,
+    modelStatus: state.faceRecognition.modelStatus
   };
 };
 
 export default connect(
   mapStateToProps,
-  { setWhoIsIt }
+  { setWhoIsIt, setModelStatus }
 )(FaceRecognition);

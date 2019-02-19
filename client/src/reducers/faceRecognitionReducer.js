@@ -1,4 +1,4 @@
-import { SET_WHOISIT } from "../actions/types";
+import { SET_WHOISIT, SET_MODEL_STATUS } from "../actions/types";
 import isEmpty from "../validation/is-empty";
 
 const initialState = {
@@ -14,6 +14,11 @@ export default (state = initialState, action) => {
         ...state,
         whoIsIt: action.payload.whoisit,
         faceInfo: action.payload.faceInfo
+      };
+    case SET_MODEL_STATUS:
+      return {
+        ...state,
+        modelStatus: action.payload
       };
     default:
       return state;
