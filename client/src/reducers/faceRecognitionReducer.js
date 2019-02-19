@@ -3,7 +3,8 @@ import isEmpty from "../validation/is-empty";
 
 const initialState = {
   whoIsIt: "Nobody",
-  faceInfo: {}
+  faceInfo: {},
+  modelStatus: "Loading..."
 };
 
 export default (state = initialState, action) => {
