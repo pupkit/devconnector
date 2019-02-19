@@ -137,7 +137,7 @@ class FaceRecognition extends Component {
 
       if (result) {
         bestMatch = faceMatcher.findBestMatch(result.descriptor);
-        this.props.setWhoIsIt(bestMatch.toString(), result.detection);
+        this.props.setWhoIsIt(bestMatch.toString(), result);
       }
       faceMatcher = null;
       bestMatch = null;
