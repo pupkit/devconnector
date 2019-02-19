@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 import { withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import $ from "jquery";
+import ReactJson from 'react-json-view';
 import { setWhoIsIt } from "../../actions/faceRecognitionActions";
 // import {
 //   requestExternalImage,
@@ -83,7 +84,8 @@ class FaceRecognition extends Component {
   constructor() {
     super();
     this.state = {
-      whoIsIt: "Nobody"
+      whoIsIt: "Nobody",
+      faceInfo: {}
     };
     this.onPlay = this.onPlay.bind(this);
   }
@@ -135,7 +137,7 @@ class FaceRecognition extends Component {
 
       if (result) {
         bestMatch = faceMatcher.findBestMatch(result.descriptor);
-        this.props.setWhoIsIt(bestMatch.toString());
+        this.props.setWhoIsIt(bestMatch.toString(), result.detection);
       }
       faceMatcher = null;
       bestMatch = null;
@@ -145,7 +147,7 @@ class FaceRecognition extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.whoIsIt) {
-      this.setState({ whoIsIt: nextProps.whoIsIt });
+      this.setState({ whoIsIt: nextProps.whoIsIt, faceInfo: nextProps.faceInfo });
     }
   }
 
@@ -182,16 +184,21 @@ class FaceRecognition extends Component {
           <video onPlay={this.onPlay} id="inputVideo" autoPlay muted />
           <canvas id="overlay" />
         </div>
-        <div>
-          <label>{this.state.whoIsIt}</label>
+        <div key={"whoIsIt"}>
+          <label>{JSON.stringify(this.state.whoIsIt)}</label>
+          <ReactJson src={this.state.faceInfo} />
         </div>
+        {/* <div key={"faceInfo"}>
+          <label>{this.state.faceInfo}</label>
+        </div> */}
       </div>
     );
   }
 }
 
 FaceRecognition.propTypes = {
-  whoIsIt: PropTypes.string.isRequired
+  whoIsIt: PropTypes.string.isRequired,
+  faceInfo: PropTypes.object.isRequired
 };
 
 // const mapStateToProps = state => ({
@@ -200,7 +207,8 @@ FaceRecognition.propTypes = {
 
 const mapStateToProps = state => {
   return {
-    whoIsIt: state.faceRecognition.whoIsIt
+    whoIsIt: state.faceRecognition.whoIsIt,
+    faceInfo: state.faceRecognition.faceInfo
   };
 };
 
