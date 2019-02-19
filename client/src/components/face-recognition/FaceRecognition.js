@@ -174,7 +174,7 @@ class FaceRecognition extends Component {
     overlay = $("#overlay").get(0);
     videoEl = $("#inputVideo").get(0);
 
-    await this.run();
+    this.run();
   }
 
   render() {
@@ -184,13 +184,10 @@ class FaceRecognition extends Component {
           <video onPlay={this.onPlay} id="inputVideo" autoPlay muted />
           <canvas id="overlay" />
         </div>
-        <div key={"whoIsIt"}>
+        <div>
           <label>{JSON.stringify(this.state.whoIsIt)}</label>
           <ReactJson src={this.state.faceInfo} />
         </div>
-        {/* <div key={"faceInfo"}>
-          <label>{this.state.faceInfo}</label>
-        </div> */}
       </div>
     );
   }
